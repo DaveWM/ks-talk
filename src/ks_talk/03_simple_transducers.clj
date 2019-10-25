@@ -1,4 +1,4 @@
-(ns ks-talk.complex-transducers
+(ns ks-talk.03-simple-transducers
   (:require [jackdaw.streams :as j]
             [jackdaw.serdes.edn :as jse])
   (:import (org.apache.kafka.streams.kstream Transformer)
@@ -37,31 +37,18 @@
    :key-serde (jse/serde)
    :value-serde (jse/serde)})
 
-(def process-incoming-transaction-xf
-  (map (fn [[k v]]
-         [k (-> (select-keys v [:id :timestamp :payment-method])
-                (assoc :amount-cents (int (* (:amount v) 100))))])))
-
 (def process-repayments-xf
   (comp
-   process-incoming-transaction-xf
+   (map (fn [[k v]]
+          [k (-> (select-keys v [:id :timestamp :payment-method])
+                 (assoc :amount-cents (int (* (:amount v) 100))))]))
    (filter (fn [[k v]]
              (= (:payment-method v) :direct-debit)))))
 
-(def process-reversals-xf
-  (comp
-   process-incoming-transaction-xf
-   (map (fn [[k v]]
-          [k (update v :amount-cents -)]))))
-
 (defn topology [builder]
-  (j/merge
-   (-> (j/kstream builder (->topic-config "repayments"))
-       (transduce-stream process-repayments-xf)
-       (j/to (->topic-config "direct-debit-transactions")))
-   (-> (j/kstream builder (->topic-config "reversals"))
-       (transduce-stream process-repayments-xf)
-       (j/to (->topic-config "direct-debit-transactions")))))
+  (-> (j/kstream builder (->topic-config "repayments"))
+      (transduce-stream process-repayments-xf)
+      (j/to (->topic-config "direct-debit-transactions"))))
 
 (defn start! []
   (let [builder (j/streams-builder)]
@@ -70,7 +57,7 @@
 
 
 (comment
- ;; Test out Transducers
+ ;; Test out Transducer
  (into []
        process-repayments-xf
        [[:k {:id 123
@@ -78,15 +65,4 @@
              :payment-method :direct-debit
              :amount 199.99
              :user-id 5432}]])
-
- (into []
-       process-reversals-xf
-       [[:k {:id 234
-             :payment-reversed-id 123
-             :timestamp (System/currentTimeMillis)
-             :amount 199.99
-             :user-id 5432}]])
-
  )
-
-

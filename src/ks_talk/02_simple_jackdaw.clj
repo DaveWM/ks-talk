@@ -1,4 +1,4 @@
-(ns ks-talk.simple-jackdaw
+(ns ks-talk.02-simple-jackdaw
   (:require [jackdaw.streams :as j]
             [jackdaw.serdes.edn :as jse]))
 

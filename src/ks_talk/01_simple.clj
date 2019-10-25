@@ -1,4 +1,4 @@
-(ns ks-talk.simple
+(ns ks-talk.01-simple
   (:require [clojure.data.json :as json])
   (:import (org.apache.kafka.streams StreamsBuilder StreamsConfig KafkaStreams)
            (org.apache.kafka.streams.kstream KeyValueMapper Predicate Consumed Produced)

@@ -43,19 +43,19 @@
    :topic/reversals (->topic-config "reversals")
    :topic/direct-debit-transactions (->topic-config "direct-debit-transactions")
 
-   :stream/repayments->dd-transactions {::w/entity-type :kstream
-                                        ::w/xform process-repayments-xf}
-   :stream/reversals->dd-transactions {::w/entity-type :kstream
-                                       ::w/xform process-reversals-xf}})
+   :stream/repayments {::w/entity-type :kstream
+                       ::w/xform process-repayments-xf}
+   :stream/reversals {::w/entity-type :kstream
+                      ::w/xform process-reversals-xf}})
 
 (def workflow
-  [[:topic/repayments :stream/repayments->dd-transactions]
-   [:topic/reversals :stream/reversals->dd-transactions]
-   [:stream/repayments->dd-transactions :topic/direct-debit-transactions]
-   [:stream/reversals->dd-transactions :topic/direct-debit-transactions]])
+  [[:topic/repayments :stream/repayments]
+   [:topic/reversals :stream/reversals]
+   [:stream/repayments :topic/direct-debit-transactions]
+   [:stream/reversals :topic/direct-debit-transactions]])
 
 (def joins
-  {[:stream/repayments->dd-transactions :stream/reversals->dd-transactions] {::w/join-type :merge}})
+  {[:stream/repayments :stream/reversals] {::w/join-type :merge}})
 
 (def topology
   {:entities entities
@@ -98,14 +98,14 @@
  ;; Experiment
  (def experiment-output
    (willa.experiment/run-experiment
-      topology
-      {:topic/repayments [{:key :k
-                           :value {:id 123
-                                   :timestamp (System/currentTimeMillis)
-                                   :payment-method :direct-debit
-                                   :amount 199.99
-                                   :user-id 5432}
-                           :timestamp 0}]}))
+    topology
+    {:topic/repayments [{:key :k
+                         :value {:id 123
+                                 :timestamp (System/currentTimeMillis)
+                                 :payment-method :direct-debit
+                                 :amount 199.99
+                                 :user-id 5432}
+                         :timestamp 0}]}))
 
  (willa.experiment/results-only experiment-output)
 

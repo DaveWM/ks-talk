@@ -55,13 +55,13 @@
           [k (update v :amount-cents -)]))))
 
 (defn topology [builder]
-  (j/merge
-   (-> (j/kstream builder (->topic-config "repayments"))
-       (transduce-stream process-repayments-xf)
-       (j/to (->topic-config "direct-debit-transactions")))
-   (-> (j/kstream builder (->topic-config "reversals"))
-       (transduce-stream process-repayments-xf)
-       (j/to (->topic-config "direct-debit-transactions")))))
+  (-> (j/merge
+       (-> (j/kstream builder (->topic-config "repayments"))
+           (transduce-stream process-repayments-xf))
+       (-> (j/kstream builder (->topic-config "reversals"))
+           (transduce-stream process-reversals-xf)))
+
+      (j/to (->topic-config "direct-debit-transactions"))))
 
 (defn start! []
   (let [builder (j/streams-builder)]

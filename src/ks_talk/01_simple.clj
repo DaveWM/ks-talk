@@ -58,7 +58,8 @@
 
 (defn start! []
   (let [builder (StreamsBuilder.)]
-    (doto (KafkaStreams. (.build (topology builder)) config)
+    (topology builder)
+    (doto (KafkaStreams. (.build builder) config)
       (.start))))
 
 

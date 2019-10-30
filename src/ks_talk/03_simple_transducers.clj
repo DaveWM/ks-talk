@@ -52,7 +52,8 @@
 
 (defn start! []
   (let [builder (j/streams-builder)]
-    (doto (j/kafka-streams (topology builder) config)
+    (topology builder)
+    (doto (j/kafka-streams builder config)
       (j/start))))
 
 

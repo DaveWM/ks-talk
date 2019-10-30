@@ -111,6 +111,3 @@
 
  (willa.viz/view-topology experiment-output)
  )
-
-
-
